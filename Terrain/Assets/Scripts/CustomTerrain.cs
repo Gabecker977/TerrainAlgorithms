@@ -34,7 +34,7 @@ public class CustomTerrain : MonoBehaviour
       new PerlinParametres()
     };
     //Voronoi
-    [SerializeField] private enum VoronoiType{Linear,Power,Combined,CrazySin}
+    [SerializeField] private enum VoronoiType{Linear,Power,Combined,SinPow,CrazySin}
     [SerializeField] private VoronoiType voronoiType=VoronoiType.Combined;
     [SerializeField] private int varonoiCount=1;
     [SerializeField] private float fallOff=0.6f;
@@ -130,6 +130,9 @@ public class CustomTerrain : MonoBehaviour
                 h=peak.y-distanceToPeak*fallOff-Mathf.Pow(distanceToPeak,dropOff);
             else if(voronoiType.Equals(VoronoiType.Power))
                 h=peak.y-Mathf.Pow(distanceToPeak,dropOff)*fallOff; 
+            else if(voronoiType.Equals(VoronoiType.SinPow)){
+                h=peak.y-Mathf.Pow(distanceToPeak*3,fallOff)-Mathf.Sin(distanceToPeak*Mathf.PI)/dropOff;
+            }
             else
                 h= Mathf.Sin(distanceToPeak*100)*0.1f; //Crazy Sin
             
