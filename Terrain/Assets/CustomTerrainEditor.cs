@@ -34,6 +34,7 @@ public class CustomTerrainEditor : Editor
     private bool showMultiPerlin=false;
     private bool showVoronoi=false;
     private bool showBorder=false;
+    private bool showMPD=false;
     private void OnEnable() {
         resetTerrain=serializedObject.FindProperty("resetTerrain");
         randomHeightRange=serializedObject.FindProperty("randomHeightRange");
@@ -143,6 +144,13 @@ public class CustomTerrainEditor : Editor
             terrain.Border();
         }
     }
+    showMPD=EditorGUILayout.Foldout(showMPD,"Mid Point Displacement");
+    if(showMPD){
+        if(GUILayout.Button("MPD")){
+                terrain.MidPointDisplacement();
+        }
+    }
+    
      EditorGUILayout.LabelField("",GUI.skin.horizontalSlider);
     if(GUILayout.Button("Reset Terrain"))
     {

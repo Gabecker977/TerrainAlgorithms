@@ -44,9 +44,10 @@ public class CustomTerrain : MonoBehaviour
     
     //Border
     [SerializeField] private float borderHeight=0.1f;
+    //MPD
+
     private Terrain terrain;
     private TerrainData terrainData;
-
     private float[,] GetHeightMap(){
       if(!resetTerrain)
         return terrainData.GetHeights(0,0,terrainData.heightmapResolution,terrainData.heightmapResolution);
@@ -155,6 +156,40 @@ public class CustomTerrain : MonoBehaviour
       }
 
        terrainData.SetHeights(0,0,heightMap);
+    }
+    public void MidPointDisplacement(){
+      float[,] heightMap=GetHeightMap();
+      int width=terrainData.heightmapResolution-1;
+      int squareSize=width;
+      float heigth=squareSize/2.0f*.01f;
+      float roughness=2.0f;
+      float heightDampener=Mathf.Pow(2,-1*roughness);
+      int cornerX,cornerY;
+      int midX,midY;
+      int pmidXL,pmidXR,pmidYU,pmidYD;
+
+      heightMap[0,0]=Random.Range(0f,0.2f);
+      heightMap[0,terrainData.heightmapResolution-2]=Random.Range(0.0f,0.2f);
+      heightMap[terrainData.heightmapResolution-2,0]=Random.Range(0.0f,0.2f);
+      heightMap[terrainData.heightmapResolution-2,terrainData.heightmapResolution-2]
+      =Random.Range(0.0f,0.2f);
+    while(squareSize>0){
+      for(int x=0;x<width;x+=squareSize){
+        for(int y=0;y<width;y+=squareSize){
+          cornerX=(x+squareSize);
+          cornerY=(y+squareSize);
+
+          midX=(int)(x+squareSize/2.0f);
+          midY=(int)(y+squareSize/2.0f);
+
+           heightMap[midX,midY]=(heightMap[x,y]+heightMap[cornerX,y]+heightMap[x,cornerY]+
+           heightMap[cornerX,cornerY])/4f+Random.Range(-heigth,heigth);
+          }
+        }
+        squareSize/=2;
+        heigth*=heightDampener;
+      }
+      terrainData.SetHeights(0,0,heightMap);
     }
     public void ResetTerrain(){
        float[,] heightMap=GetHeightMap();
