@@ -168,7 +168,7 @@ public class CustomTerrain : MonoBehaviour
       int midX,midY;
       int pmidXL,pmidXR,pmidYU,pmidYD;
 
-      heightMap[0,0]=Random.Range(0f,0.2f);
+      /*heightMap[0,0]=Random.Range(0f,0.2f);
       heightMap[0,terrainData.heightmapResolution-2]=Random.Range(0.0f,0.2f);
       heightMap[terrainData.heightmapResolution-2,0]=Random.Range(0.0f,0.2f);
       heightMap[terrainData.heightmapResolution-2,terrainData.heightmapResolution-2]
@@ -179,18 +179,52 @@ public class CustomTerrain : MonoBehaviour
           cornerX=(x+squareSize);
           cornerY=(y+squareSize);
 
-          midX=(int)(x+squareSize/2.0f);
-          midY=(int)(y+squareSize/2.0f);
+          midX=x+squareSize/2;
+          midY=y+squareSize/2;
 
            heightMap[midX,midY]=(heightMap[x,y]+heightMap[cornerX,y]+heightMap[x,cornerY]+
            heightMap[cornerX,cornerY])/4f+Random.Range(-heigth,heigth);
           }
+        }*/
+        for(int x=0;x<width;x+=squareSize){
+          for(int y=0;y<width;y+=squareSize){
+            cornerX=(x+squareSize);
+            cornerY=(y+squareSize);
+            
+            midX=x+squareSize/2;
+            midY=y+squareSize/2;
+
+            pmidXR=midX+squareSize;
+            pmidYU=midY+squareSize;
+            pmidXL=midX-squareSize;
+            pmidYD=midY-squareSize;
+            if(pmidXL<=0||pmidYD<=0||pmidXR>=width-1||pmidYU>=width-1)
+              continue;
+
+            heightMap[midX,y]=(heightMap[x,y]+heightMap[midX,midY]
+            +heightMap[cornerX,y]+heightMap[midX,pmidYD])/4f+Random.Range(-heigth,heigth);
+            
+            heightMap[x,midY]=(heightMap[x,y]+heightMap[midX,midY]
+            +heightMap[x,cornerY]+heightMap[pmidXL,midY])/4f+Random.Range(-heigth,heigth);
+
+            heightMap[midX,cornerY]=(heightMap[cornerX,cornerY]+heightMap[midX,midY]
+            +heightMap[x,cornerY]+heightMap[midX,pmidYU])/4f+Random.Range(-heigth,heigth);
+
+             heightMap[cornerX,midY]=(heightMap[cornerX,cornerY]+heightMap[midX,midY]
+            +heightMap[cornerX,y]+heightMap[pmidXR,midY])/4f+Random.Range(-heigth,heigth);
+
+          }
         }
         squareSize/=2;
         heigth*=heightDampener;
-      }
+      
       terrainData.SetHeights(0,0,heightMap);
     }
+   // private float HeightCalculation(int x,int y, int midX,int midY,int cornerX, int cornerY){
+     // return (heightMap[x,y]+heightMap[cornerX,y]+heightMap[x,cornerY]+
+    //       heightMap[cornerX,cornerY])/4f+Random.Range(-heigth,heigth);
+      
+  //  }
     public void ResetTerrain(){
        float[,] heightMap=GetHeightMap();
       for (int x = 0; x < terrainData.heightmapResolution; x++)
