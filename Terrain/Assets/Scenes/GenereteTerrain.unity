@@ -276,13 +276,18 @@ MonoBehaviour:
     mPerlinPersistence: 6
     mPerlinHeightScale: 0.09
     remove: 0
-  voronoiType: 2
+  voronoiType: 3
   varonoiCount: 3
   fallOff: 4.5
   dropOff: 2.3
   vMinHeight: 0.101
   vMaxHeight: 0.54
-  borderHeight: 0.42
+  borderHeight: 0.22
+  MDMinHeight: -9
+  MDMaxHeight: 9
+  MDRoughness: 2
+  MDHeightDampener: 2
+  smoothAmmout: 2
 --- !u!154 &241116370
 TerrainCollider:
   m_ObjectHideFlags: 0
@@ -447,6 +452,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 727566045, guid: b4e7ce6be8826794ba8178028afe7f8d, type: 3}
+      propertyPath: MaxDistance
+      value: 163.0345
+      objectReference: {fileID: 0}
     - target: {fileID: 4773807699872882672, guid: b4e7ce6be8826794ba8178028afe7f8d, type: 3}
       propertyPath: m_Name
       value: Player

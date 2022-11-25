@@ -45,7 +45,12 @@ public class CustomTerrain : MonoBehaviour
     //Border
     [SerializeField] private float borderHeight=0.1f;
     //MPD
-
+    [SerializeField] private float MDMinHeight=-2f;
+    [SerializeField] private float MDMaxHeight=2f;
+    [SerializeField] private float MDRoughness=2.0f;
+    [SerializeField] private float MDHeightDampener=2f;
+    //Smooth
+    [SerializeField] private int smoothAmmout=2;
     private Terrain terrain;
     private TerrainData terrainData;
     private float[,] GetHeightMap(){
@@ -161,18 +166,21 @@ public class CustomTerrain : MonoBehaviour
       float[,] heightMap=GetHeightMap();
       int width=terrainData.heightmapResolution-1;
       int squareSize=width;
-      float heigth=squareSize/2.0f*.01f;
-      float roughness=2.0f;
-      float heightDampener=Mathf.Pow(2,-1*roughness);
+
+      float minHeight=MDMinHeight;
+      float maxHeight=MDMaxHeight;
+      float heightDampener=Mathf.Pow(MDHeightDampener,-1*MDRoughness);
+      
       int cornerX,cornerY;
       int midX,midY;
       int pmidXL,pmidXR,pmidYU,pmidYD;
-
+      
       /*heightMap[0,0]=Random.Range(0f,0.2f);
       heightMap[0,terrainData.heightmapResolution-2]=Random.Range(0.0f,0.2f);
       heightMap[terrainData.heightmapResolution-2,0]=Random.Range(0.0f,0.2f);
       heightMap[terrainData.heightmapResolution-2,terrainData.heightmapResolution-2]
-      =Random.Range(0.0f,0.2f);
+      =Random.Range(0.0f,0.2f);*/
+
     while(squareSize>0){
       for(int x=0;x<width;x+=squareSize){
         for(int y=0;y<width;y+=squareSize){
@@ -183,9 +191,10 @@ public class CustomTerrain : MonoBehaviour
           midY=y+squareSize/2;
 
            heightMap[midX,midY]=(heightMap[x,y]+heightMap[cornerX,y]+heightMap[x,cornerY]+
-           heightMap[cornerX,cornerY])/4f+Random.Range(-heigth,heigth);
+           heightMap[cornerX,cornerY])/4f+Random.Range(minHeight,maxHeight);
           }
-        }*/
+        }
+
         for(int x=0;x<width;x+=squareSize){
           for(int y=0;y<width;y+=squareSize){
             cornerX=(x+squareSize);
@@ -198,33 +207,76 @@ public class CustomTerrain : MonoBehaviour
             pmidYU=midY+squareSize;
             pmidXL=midX-squareSize;
             pmidYD=midY-squareSize;
+
             if(pmidXL<=0||pmidYD<=0||pmidXR>=width-1||pmidYU>=width-1)
               continue;
 
             heightMap[midX,y]=(heightMap[x,y]+heightMap[midX,midY]
-            +heightMap[cornerX,y]+heightMap[midX,pmidYD])/4f+Random.Range(-heigth,heigth);
+            +heightMap[cornerX,y]+heightMap[midX,pmidYD])/4f+Random.Range(minHeight,maxHeight);
             
             heightMap[x,midY]=(heightMap[x,y]+heightMap[midX,midY]
-            +heightMap[x,cornerY]+heightMap[pmidXL,midY])/4f+Random.Range(-heigth,heigth);
+            +heightMap[x,cornerY]+heightMap[pmidXL,midY])/4f+Random.Range(minHeight,maxHeight);
 
             heightMap[midX,cornerY]=(heightMap[cornerX,cornerY]+heightMap[midX,midY]
-            +heightMap[x,cornerY]+heightMap[midX,pmidYU])/4f+Random.Range(-heigth,heigth);
+            +heightMap[x,cornerY]+heightMap[midX,pmidYU])/4f+Random.Range(minHeight,maxHeight);
 
              heightMap[cornerX,midY]=(heightMap[cornerX,cornerY]+heightMap[midX,midY]
-            +heightMap[cornerX,y]+heightMap[pmidXR,midY])/4f+Random.Range(-heigth,heigth);
+            +heightMap[cornerX,y]+heightMap[pmidXR,midY])/4f+Random.Range(minHeight,maxHeight);
 
           }
         }
         squareSize/=2;
-        heigth*=heightDampener;
+        minHeight*=heightDampener;
+        maxHeight*=heightDampener;
       
       terrainData.SetHeights(0,0,heightMap);
+      }
     }
-   // private float HeightCalculation(int x,int y, int midX,int midY,int cornerX, int cornerY){
-     // return (heightMap[x,y]+heightMap[cornerX,y]+heightMap[x,cornerY]+
-    //       heightMap[cornerX,cornerY])/4f+Random.Range(-heigth,heigth);
-      
-  //  }
+    List<Vector2> GerenateNeighbours(Vector2 pos,int width,int height){
+      List<Vector2> neighbours=new List<Vector2>();
+      for(int y=-1;y<2;y++){
+        for(int x=-1;x<2;x++){
+            if(!(x==0&&y==0)){
+                Vector2 nPos =new Vector2(Mathf.Clamp(pos.x+x,0,width-1),
+                Mathf.Clamp(pos.y+y,0,height-1));
+                if(!neighbours.Contains(nPos)){
+                  neighbours.Add(nPos);
+                }
+            }
+        }
+      }
+       return neighbours;
+    }
+    public void Smooth(){
+      float[,] heightMap=terrainData.GetHeights(0,0,terrainData.heightmapResolution,terrainData.heightmapResolution);
+      float smoothProgress=0;
+      EditorUtility.DisplayProgressBar("Smooth Terrain","Progress",smoothProgress
+      );
+
+      int s =0;
+      while(s<smoothAmmout){
+      for (int x = 0; x < terrainData.heightmapResolution; x++)
+      {
+        for (int y = 0; y < terrainData.heightmapResolution; y++)
+        {
+          float avgHeight=heightMap[x,y];
+          List<Vector2> neighbours=GerenateNeighbours(new Vector2(x,y),
+          terrainData.heightmapResolution,terrainData.heightmapResolution);
+
+        foreach(Vector2 n in neighbours){
+          avgHeight+=heightMap[(int)n.x,(int)n.y];
+        }
+        heightMap[x,y]=avgHeight/((float)neighbours.Count+1);
+        }
+      }
+      s++;
+      smoothProgress++;
+      EditorUtility.DisplayProgressBar("Smooth Terrain","Progress"
+      ,smoothProgress/smoothAmmout);
+      }
+      terrainData.SetHeights(0,0,heightMap);
+      EditorUtility.ClearProgressBar();
+    } 
     public void ResetTerrain(){
        float[,] heightMap=GetHeightMap();
       for (int x = 0; x < terrainData.heightmapResolution; x++)
